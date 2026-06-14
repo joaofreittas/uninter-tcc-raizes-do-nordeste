@@ -1,0 +1,13 @@
+package com.uninter.raizesdonordeste.dataprovider.database.customer;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface CustomerRepository extends JpaRepository<CustomerEntity, Long> {
+
+    Optional<CustomerEntity> findByDocument(String document);
+
+    Optional<CustomerEntity> findByEmail(String email);
+
+}
