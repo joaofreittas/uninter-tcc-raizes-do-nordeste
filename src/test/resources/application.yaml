@@ -1,0 +1,17 @@
+spring:
+    application:
+        name: raizesdonordeste
+    datasource:
+        url: jdbc:postgresql://localhost:5000/raizesdonordeste
+        username: app-test
+        password: app-test
+    jpa:
+        hibernate:
+            ddl-auto: update
+
+server:
+    port: 8001
+
+jwt:
+    secret: 123456789
+    expiration: 1800000
