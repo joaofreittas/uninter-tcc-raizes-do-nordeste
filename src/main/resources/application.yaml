@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: raizesdonordeste
+  datasource:
+    url: ${PROJECT_DB_URL}
+    username: ${PROJECT_DB_USERNAME}
+    password: ${PROJECT_DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+server:
+  port: 8001
+
+jwt:
+  secret: ${PROJECT_SECRET_JWT}
+  expiration: ${PROJECT_SECRET_JWT_EXPIRATION}
