@@ -56,9 +56,6 @@ public class PaymentEntity {
     private String gatewayTransactionId;
 
     @Column
-    private String gatewayProvider;
-
-    @Column
     private LocalDateTime createdAt;
 
     @Column
@@ -72,7 +69,6 @@ public class PaymentEntity {
             .status(status)
             .amount(amount)
             .gatewayTransactionId(gatewayTransactionId)
-            .gatewayProvider(gatewayProvider)
             .createdAt(createdAt)
             .updatedAt(updatedAt)
             .build();
@@ -86,7 +82,6 @@ public class PaymentEntity {
             .status(domain.getStatus())
             .amount(domain.getAmount())
             .gatewayTransactionId(domain.getGatewayTransactionId())
-            .gatewayProvider(domain.getGatewayProvider())
             .createdAt(domain.getCreatedAt())
             .updatedAt(domain.getUpdatedAt())
             .build();

@@ -15,3 +15,7 @@ server:
 jwt:
   secret: ${PROJECT_SECRET_JWT}
   expiration: ${PROJECT_SECRET_JWT_EXPIRATION}
+
+payment:
+  provider:
+    url: ${PAYMENT_PROVIDER_URL}
