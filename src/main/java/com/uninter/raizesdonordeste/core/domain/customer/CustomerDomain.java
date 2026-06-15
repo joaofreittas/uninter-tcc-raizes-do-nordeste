@@ -1,5 +1,6 @@
 package com.uninter.raizesdonordeste.core.domain.customer;
 
+import com.uninter.raizesdonordeste.core.domain.promotion.CustomerPromotionDomain;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -7,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Builder
@@ -24,6 +26,7 @@ public class CustomerDomain {
     private Boolean marketingAccepted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<CustomerPromotionDomain> promotions;
 
     public static CustomerDomain create(final String name, final String document, final String email,
                                         final String phone, final LocalDate birthDate,
@@ -54,6 +57,7 @@ public class CustomerDomain {
             .marketingAccepted(marketingAccepted)
             .createdAt(this.createdAt)
             .updatedAt(LocalDateTime.now())
+            .promotions(this.promotions)
             .build();
     }
 

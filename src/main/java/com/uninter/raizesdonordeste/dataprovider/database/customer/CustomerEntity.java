@@ -1,12 +1,17 @@
 package com.uninter.raizesdonordeste.dataprovider.database.customer;
 
 import com.uninter.raizesdonordeste.core.domain.customer.CustomerDomain;
+import com.uninter.raizesdonordeste.dataprovider.database.promotion.CustomerPromotionEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -56,6 +61,9 @@ public class CustomerEntity {
     @Column
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
+    private List<CustomerPromotionEntity> promotions;
+
     public CustomerDomain toDomain() {
         return CustomerDomain.builder()
             .id(id)
@@ -68,6 +76,7 @@ public class CustomerEntity {
             .marketingAccepted(marketingAccepted)
             .createdAt(createdAt)
             .updatedAt(updatedAt)
+            .promotions(promotions == null ? List.of() : promotions.stream().map(CustomerPromotionEntity::toDomain).toList())
             .build();
     }
 
