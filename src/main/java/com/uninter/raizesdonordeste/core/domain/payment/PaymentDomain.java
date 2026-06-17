@@ -24,4 +24,25 @@ public class PaymentDomain {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    public static PaymentDomain create(final Long orderId, final PaymentType paymentType, final BigDecimal amount) {
+        return PaymentDomain.builder()
+            .orderId(orderId)
+            .paymentType(paymentType)
+            .status(PaymentStatus.PENDING)
+            .amount(amount)
+            .createdAt(LocalDateTime.now())
+            .build();
+    }
+
+    public void approve(final String transactionId) {
+        this.status = PaymentStatus.APPROVED;
+        this.gatewayTransactionId = transactionId;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void decline() {
+        this.status = PaymentStatus.DECLINED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
 }

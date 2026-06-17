@@ -26,4 +26,30 @@ public class OrderDomain {
     private LocalDateTime updatedAt;
     private List<OrderItemDomain> items;
 
+    public static OrderDomain create(final Long customerId, 
+                                     final Long unitId,
+                                     final DeliveryType deliveryType,
+                                     final OrderChannel orderChannel, 
+                                     final BigDecimal totalAmount) {
+        return OrderDomain.builder()
+            .customerId(customerId)
+            .unitId(unitId)
+            .deliveryType(deliveryType)
+            .orderChannel(orderChannel)
+            .status(OrderStatus.PENDING)
+            .totalAmount(totalAmount)
+            .createdAt(LocalDateTime.now())
+            .build();
+    }
+
+    public void confirm() {
+        this.status = OrderStatus.CONFIRMED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void cancel() {
+        this.status = OrderStatus.CANCELLED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
 }

@@ -20,4 +20,18 @@ public class OrderItemDomain {
     private Integer quantity;
     private BigDecimal unitPrice;
 
+    public static OrderItemDomain create(final Long orderId, 
+                                         final Long productId,
+                                         final String productName, 
+                                         final Integer quantity,
+                                         final BigDecimal unitPrice) {
+        return OrderItemDomain.builder()
+            .orderId(orderId)
+            .productId(productId)
+            .productName(productName)
+            .quantity(quantity)
+            .unitPrice(unitPrice)
+            .build();
+    }
+
 }
