@@ -1,0 +1,1185 @@
+{
+  "info": {
+    "_postman_id": "dd5905ce-4897-4f2a-8f99-fa6671b3a795",
+    "name": "plano de testes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "47262090",
+    "_collection_link": "https://go.postman.co/collection/47262090-dd5905ce-4897-4f2a-8f99-fa6671b3a795?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "pré-configuração (executar antes dos testes)",
+      "item": [
+        {
+          "name": "login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set(\"jwt_token\", pm.response.json().token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"joao@teste.com\",\n  \"password\": \"12345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login com o usuário ADMIN criado no fluxo principal. Salva o jwt_token da collection para uso em todos os requests protegidos desta collection."
+          },
+          "response": []
+        },
+        {
+          "name": "login user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set(\"jwt_token_user\", pm.response.json().token);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"joao@gmail.com\",\n  \"password\": \"joao1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login com o usuário ADMIN criado no fluxo principal. Salva o jwt_token da collection para uso em todos os requests protegidos desta collection."
+          },
+          "response": []
+        },
+        {
+          "name": "Setup: repor estoque produto 1 (+5 unidades)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/inventory-items/1/add-stock",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "inventory-items",
+                "1",
+                "add-stock"
+              ]
+            },
+            "description": "O fluxo principal consome 5 unidades do estoque inicial de 10 (stock = 5).\nEste setup repõe +5 unidades via PATCH /add-stock → stock = 10.\n\nRastreio determinístico de estoque:\n  → Após fluxo principal: stock = 5\n  → Após este setup (+5): stock = 10\n  → Após T06 (−5): stock = 5 → T07 verifica 5 ✅\n  → T10 solicita 7 → Available: 5, requested: 7 ✅"
+          },
+          "response": []
+        },
+        {
+          "name": "Setup: criar produto mock pagamento recusado (R$ 10,00)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"product_id_declined\", jsonData.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Produto Mock Pagamento Recusado\",\n  \"price\": \"10.00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/products",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ]
+            },
+            "description": "Cria o produto com preço exatamente R$ 10,00, necessário para T05 (pagamento mock recusado).\nO id retornado é salvo na variável product_id_declined e reaproveitado nos dois próximos passos de setup."
+          },
+          "response": []
+        },
+        {
+          "name": "Setup: registrar produto mock no estoque",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"inventory_id_declined\", jsonData.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unitId\": 1,\n  \"productId\": {{product_id_declined}},\n  \"quantity\": 5,\n  \"minimumQuantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/inventory-items",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "inventory-items"
+              ]
+            },
+            "description": "Registra o produto mock (R$ 10,00) no estoque da unidade 1 com 5 unidades.\nDepende da variável product_id_declined definida no passo anterior."
+          },
+          "response": []
+        },
+        {
+          "name": "Setup: adicionar produto mock ao cardápio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": {{product_id_declined}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/menus/1/products",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "menus",
+                "1",
+                "products"
+              ]
+            },
+            "description": "Adiciona o produto mock (R$ 10,00) ao cardápio da unidade 1 (menuId=1), habilitando-o para ser pedido em T05."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "autenticação e autorização",
+      "item": [
+        {
+          "name": "T01 - Login com credenciais válidas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"joao@teste.com\",\n  \"password\": \"12345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "PRÉ-CONDIÇÃO: Usuário joao@teste.com cadastrado com role ADMIN pelo fluxo principal.\n\nTIPO: Positivo | CATEGORIA: Autenticação\n\nSAÍDA ESPERADA: 200 OK com token JWT no campo \"token\".\nO script atualiza a variável jwt_token da collection."
+          },
+          "response": []
+        },
+        {
+          "name": "T02 - Acesso sem token → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/inventory-items",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "inventory-items"
+              ]
+            },
+            "description": "PRÉ-CONDIÇÃO: Nenhuma. Header Authorization deliberadamente ausente.\n\nTIPO: Negativo | CATEGORIA: Autenticação\n\nSAÍDA ESPERADA: 401 Unauthorized com body { \"status\": 401, \"message\": \"Não autenticado\", \"timestamp\": \"...\" }"
+          },
+          "response": []
+        },
+        {
+          "name": "T03 - Acesso com perfil sem permissão → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token_user}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Unidade Teste\",\n  \"address\": \"Rua Exemplo, 100\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/units",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "units"
+              ]
+            },
+            "description": "PRÉ-CONDIÇÃO: Criar usuário com role USER (omitir o campo role no registro):\n  POST /api/v1/auth/register → { \"name\": \"user\", \"email\": \"user@teste.com\", \"password\": \"12345678\" }\nFazer login com esse usuário e colar o token retornado na variável jwt_token_user desta collection.\n\nTIPO: Negativo | CATEGORIA: Autorização\n\nPOST /api/v1/units requer role ADMIN ou MANAGER. Token de role USER deve resultar em 403 Forbidden.\n\nSAÍDA ESPERADA: 403 Forbidden."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "validação de dados",
+      "item": [
+        {
+          "name": "T04a - Campo obrigatório ausente → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": \"4.99\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/products",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ]
+            },
+            "description": "PRÉ-CONDIÇÃO: jwt_token preenchido.\n\nTIPO: Negativo | CATEGORIA: Validação — campo obrigatório ausente (sub-caso a do cenário T04)\n\nO campo \"name\" é obrigatório (@NotBlank). Omitido propositalmente.\n\nSAÍDA ESPERADA: 400 Bad Request com mensagem de validação. Não cria nenhum produto no banco."
+          },
+          "response": []
+        },
+        {
+          "name": "T04b - Valor inválido (preço negativo) → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Produto Inválido\",\n  \"price\": \"-5.00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/products",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ]
+            },
+            "description": "PRÉ-CONDIÇÃO: jwt_token preenchido.\n\nTIPO: Negativo | CATEGORIA: Validação — valor inválido (sub-caso b do cenário T04)\n\nO campo \"price\" viola @DecimalMin(\"0.01\"). Valor -5.00 não aceito.\n\nSAÍDA ESPERADA: 400 Bad Request. Não cria nenhum produto no banco."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "regras de negócio",
+      "item": [
+        {
+          "name": "T06 - Criar pedido com itens válidos → 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"order_id\", jsonData.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": 1,\n  \"unitId\": 1,\n  \"deliveryType\": \"COUNTER\",\n  \"orderChannel\": \"COUNTER\",\n  \"paymentType\": \"PIX\",\n  \"items\": [\n    {\n      \"productId\": 1,\n      \"quantity\": 5\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ]
+            },
+            "description": "PRÉ-CONDIÇÃO: Setup de pré-configuração executado (stock reposto para 10). Produto 1 (Coca Cola KS, R$ 4,99), cliente 1 e unidade 1 existentes.\n\nTIPO: Positivo | CATEGORIA: Regra de Negócio\n\nTotal: 5 × R$ 4,99 = R$ 24,95 (≠ R$ 10,00 → mock aprova o pagamento).\nEstoque após execução: 10 − 5 = 5 unidades.\n\nSAÍDA ESPERADA: 201 Created com status PENDING e totalAmount 24.95."
+          },
+          "response": []
+        },
+        {
+          "name": "T07 - Conferir estoque após pedido (baixa confirmada)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/inventory-items",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "inventory-items"
+              ]
+            },
+            "description": "PRÉ-CONDIÇÃO: T06 executado.\n\nRastreio de estoque (produto 1):\n  → Após fluxo principal: 5\n  → Após Setup +5: 10\n  → Após T06 −5: 5 ← valor verificado aqui\n\nTIPO: Positivo | CATEGORIA: Regra de Negócio — baixa automática de estoque\n\nSAÍDA ESPERADA: 200 OK. Item do produto 1 com quantity = 5."
+          },
+          "response": []
+        },
+        {
+          "name": "T08 - Pedido com produto inexistente → 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": 1,\n  \"unitId\": 1,\n  \"deliveryType\": \"COUNTER\",\n  \"orderChannel\": \"COUNTER\",\n  \"paymentType\": \"PIX\",\n  \"items\": [\n    {\n      \"productId\": 999,\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ]
+            },
+            "description": "PRÉ-CONDIÇÃO: productId 999 não existe no banco. Não consome nem altera estoque.\n\nTIPO: Negativo | CATEGORIA: Regra de Negócio — produto inexistente\n\nSAÍDA ESPERADA: 404 Not Found com body { \"status\": 404, \"message\": \"Product not found: 999\", \"timestamp\": \"...\" }"
+          },
+          "response": []
+        },
+        {
+          "name": "T10 - Pedido com estoque insuficiente → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": 1,\n  \"unitId\": 1,\n  \"deliveryType\": \"COUNTER\",\n  \"orderChannel\": \"COUNTER\",\n  \"paymentType\": \"PIX\",\n  \"items\": [\n    {\n      \"productId\": 1,\n      \"quantity\": 7\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ]
+            },
+            "description": "PRÉ-CONDIÇÃO: T06 executado. Estoque produto 1 = 5 unidades. Solicitando 7.\n\nTIPO: Negativo | CATEGORIA: Regra de Negócio — estoque insuficiente\n\nSAÍDA ESPERADA: 400 Bad Request com body:\n{\n  \"status\": 400,\n  \"message\": \"Insufficient stock for product 'Coca Cola KS'. Available: 5, requested: 7\",\n  \"timestamp\": \"...\"\n}"
+          },
+          "response": []
+        },
+        {
+          "name": "T11 - Consultar pedidos da unidade → 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders/unit/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "unit",
+                "1"
+              ]
+            },
+            "description": "PRÉ-CONDIÇÃO: T06 executado. Unidade 1 possui ao menos 2 pedidos (1 do fluxo principal + 1 do T06).\n\nTIPO: Positivo | CATEGORIA: Regra de Negócio\n\nSAÍDA ESPERADA: 200 OK com lista não-vazia. Todos os itens devem ter unitId = 1."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "pagamento",
+      "item": [
+        {
+          "name": "T05 - Pagamento mock recusado (total = R$ 10,00)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"order_id_declined\", jsonData.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": 1,\n  \"unitId\": 1,\n  \"deliveryType\": \"COUNTER\",\n  \"orderChannel\": \"COUNTER\",\n  \"paymentType\": \"PIX\",\n  \"items\": [\n    {\n      \"productId\": {{product_id_declined}},\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ]
+            },
+            "description": "PRÉ-CONDIÇÃO: Pré-configuração executada (produto mock R$ 10,00 criado, em estoque e no cardápio). product_id_declined preenchido pelo setup.\n\nTIPO: Negativo | CATEGORIA: Pagamento — mock recusado\n\n1 unidade a R$ 10,00 = total R$ 10,00 → o mock do provedor retorna erro.\nO pedido é criado (201), mas o pagamento assíncrono é DECLINED.\n\nSAÍDA ESPERADA: 201 Created com totalAmount = 10.00. Verificar T09 para confirmar status DECLINED no pagamento."
+          },
+          "response": []
+        },
+        {
+          "name": "T05a - Pagamento mock recusado -> status DECLINED",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "accept",
+                "value": "*/*"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/payments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "payments"
+              ]
+            },
+            "description": "Generated from cURL: curl -X 'POST' \\\n  'http://localhost:8001/api/v1/units' \\\n  -H 'accept: */*' \\\n  -H 'Authorization: Bearer {{json_web_token_0n90}}' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n  \"name\": \"\",\n  \"address\": \"\"\n}'"
+          },
+          "response": []
+        },
+        {
+          "name": "T09 - Pagamento mock aprovado → status APPROVED",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/payments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "payments"
+              ]
+            },
+            "description": "PRÉ-CONDIÇÃO: T06 e T05 executados.\n\nTIPO: Positivo | CATEGORIA: Pagamento — mock aprovado (e verificação cruzada do mock recusado do T05)\n\nEste request consolida dois asserts:\n  1. Existe pagamento APPROVED com amount 24.95 → confirma T06 (R$ 24,95 ≠ R$ 10,00)\n  2. Existe pagamento DECLINED com amount 10.00 → confirma T05 (mock recusado)\n\nSAÍDA ESPERADA: 200 OK com lista contendo ambos os registros."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "auditoria",
+      "item": [
+        {
+          "name": "T12 - Auditoria: criação de pedido gera log → 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/audit-logs",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "audit-logs"
+              ]
+            },
+            "description": "PRÉ-CONDIÇÃO: T06 executado. A anotação @Auditable(action = AuditAction.CREATE) em CreateOrderUseCase dispara registro assíncrono via AuditAspect.\n\nTIPO: Positivo | CATEGORIA: Auditoria\n\nO assert busca qualquer log com action = CREATE (pode ser do fluxo principal ou do T06). A lista já contém logs do fluxo principal, garantindo que o assert passa independentemente da ordem de execução assíncrona.\n\nSAÍDA ESPERADA: 200 OK com ao menos um log contendo action = \"CREATE\" e performedBy preenchido."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "jwt_token",
+      "value": "",
+      "description": "Token JWT do usuário ADMIN. Preenchido pelo login na pré-configuração e atualizado por T01."
+    },
+    {
+      "key": "jwt_token_user",
+      "value": "",
+      "description": "Token JWT de usuário com role USER. Necessário para T03. Preencha manualmente: registre um usuário sem campo role, faça login e cole o token aqui."
+    },
+    {
+      "key": "product_id_declined",
+      "value": "",
+      "description": "ID do produto R$ 10,00 criado no setup. Preenchido automaticamente pelo Setup 3."
+    },
+    {
+      "key": "inventory_id_declined",
+      "value": "",
+      "description": "ID do item de estoque do produto mock. Preenchido automaticamente pelo Setup 4."
+    },
+    {
+      "key": "order_id",
+      "value": "",
+      "description": "ID do pedido criado em T06. Preenchido automaticamente pelo script de T06."
+    },
+    {
+      "key": "order_id_declined",
+      "value": "",
+      "description": "ID do pedido criado em T05 (pagamento recusado). Preenchido automaticamente pelo script de T05."
+    }
+  ]
+}
