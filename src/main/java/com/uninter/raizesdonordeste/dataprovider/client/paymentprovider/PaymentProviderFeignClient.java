@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface PaymentProviderFeignClient {
 
     @PostMapping("/v1/payments")
-    PaymentProviderResponse charge(@RequestBody PaymentProviderRequest request);
+    void processPayment(@RequestBody PaymentProviderRequest request);
 
 }

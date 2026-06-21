@@ -17,8 +17,9 @@ public class PaymentProviderGatewayImpl implements PaymentProviderGateway {
     @Override
     public PaymentProviderResult processPayment(final BigDecimal amount) {
         var transactionId = UUID.randomUUID().toString();
-        var response = feignClient.charge(new PaymentProviderRequest(amount, transactionId));
-        return new PaymentProviderResult(response.gatewayTransactionId(), response.amount(), response.status());
+        feignClient.processPayment(new PaymentProviderRequest(amount, transactionId));
+
+        return new PaymentProviderResult(transactionId);
     }
 
 }

@@ -31,12 +31,14 @@ public class ProcessOrderPaymentUseCase {
             pendingPayment.approve(result.gatewayTransactionId());
             paymentGateway.save(pendingPayment);
             order.confirm();
+
             orderGateway.save(order);
         } catch (Exception ex) {
             log.error("Payment processing failed for order {}: {}", orderId, ex.getMessage());
             pendingPayment.decline();
             paymentGateway.save(pendingPayment);
             order.cancel();
+
             orderGateway.save(order);
         }
     }
