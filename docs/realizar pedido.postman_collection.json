@@ -1,0 +1,561 @@
+{
+  "info": {
+    "_postman_id": "49143dc6-1039-46ea-8772-cc71037e7184",
+    "name": "realizar pedido",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "47262090",
+    "_collection_link": "https://go.postman.co/collection/47262090-49143dc6-1039-46ea-8772-cc71037e7184?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "fluxo administrador",
+      "item": [
+        {
+          "name": "criar usuario",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"joao\",\n  \"email\": \"joao@teste.com\",\n  \"password\": \"12345678\",\n  \"role\": \"ADMIN\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/auth/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "fazer login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set(\"jwt_token\", pm.response.json().token);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"joao@teste.com\",\n  \"password\": \"12345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "criar unidade",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "*/*"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Unidade Floripa\",\n  \"address\": \"Rua Sebastião do Alto, n 204, Cloropiano, Rio grande do Sul, Brasil\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/units",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "units"
+              ]
+            },
+            "description": "Generated from cURL: curl -X 'POST' \\\n  'http://localhost:8001/api/v1/units' \\\n  -H 'accept: */*' \\\n  -H 'Authorization: Bearer {{json_web_token_0n90}}' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n  \"name\": \"\",\n  \"address\": \"\"\n}'"
+          },
+          "response": []
+        },
+        {
+          "name": "criar produto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "*/*"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Coca Cola KS\",\n  \"price\": \"4.99\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/products",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ]
+            },
+            "description": "Generated from cURL: curl -X 'POST' \\\n  'http://localhost:8001/api/v1/units' \\\n  -H 'accept: */*' \\\n  -H 'Authorization: Bearer {{json_web_token_0n90}}' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n  \"name\": \"\",\n  \"address\": \"\"\n}'"
+          },
+          "response": []
+        },
+        {
+          "name": "cadastrar produto no estoque",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "*/*"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unitId\": 1,\n  \"productId\": 1,\n  \"quantity\": 10,\n  \"minimumQuantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/inventory-items",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "inventory-items"
+              ]
+            },
+            "description": "Generated from cURL: curl -X 'POST' \\\n  'http://localhost:8001/api/v1/units' \\\n  -H 'accept: */*' \\\n  -H 'Authorization: Bearer {{json_web_token_0n90}}' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n  \"name\": \"\",\n  \"address\": \"\"\n}'"
+          },
+          "response": []
+        },
+        {
+          "name": "cadastrar cardapio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "*/*"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unitId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/menus",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "menus"
+              ]
+            },
+            "description": "Generated from cURL: curl -X 'POST' \\\n  'http://localhost:8001/api/v1/units' \\\n  -H 'accept: */*' \\\n  -H 'Authorization: Bearer {{json_web_token_0n90}}' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n  \"name\": \"\",\n  \"address\": \"\"\n}'"
+          },
+          "response": []
+        },
+        {
+          "name": "cadastrar produto cardapio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "*/*"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/menus/1/products",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "menus",
+                "1",
+                "products"
+              ]
+            },
+            "description": "Generated from cURL: curl -X 'POST' \\\n  'http://localhost:8001/api/v1/units' \\\n  -H 'accept: */*' \\\n  -H 'Authorization: Bearer {{json_web_token_0n90}}' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n  \"name\": \"\",\n  \"address\": \"\"\n}'"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "fluxo cliente",
+      "item": [
+        {
+          "name": "cadastrar cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "*/*"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João Lucas\",\n  \"document\": \"77469735070\",\n  \"email\": \"joao@gmail.com\",\n  \"password\": \"joao1234\",\n  \"phone\": \"22997719088\",\n  \"birthDate\": \"1998-12-06\",\n  \"lgpdAccepted\": true,\n  \"marketingAccepted\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/customers",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "customers"
+              ]
+            },
+            "description": "Generated from cURL: curl -X 'POST' \\\n  'http://localhost:8001/api/v1/units' \\\n  -H 'accept: */*' \\\n  -H 'Authorization: Bearer {{json_web_token_0n90}}' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n  \"name\": \"\",\n  \"address\": \"\"\n}'"
+          },
+          "response": []
+        },
+        {
+          "name": "fazer pedido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": 1,\n  \"unitId\": 1,\n  \"deliveryType\": \"COUNTER\",\n  \"orderChannel\": \"COUNTER\",\n  \"paymentType\": \"PIX\",\n  \"items\": [\n    {\n      \"productId\": 1,\n      \"quantity\": 5\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "evidências pedido feito",
+      "item": [
+        {
+          "name": "conferir estoque",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "accept",
+                "value": "*/*"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/inventory-items",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "inventory-items"
+              ]
+            },
+            "description": "Generated from cURL: curl -X 'POST' \\\n  'http://localhost:8001/api/v1/units' \\\n  -H 'accept: */*' \\\n  -H 'Authorization: Bearer {{json_web_token_0n90}}' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n  \"name\": \"\",\n  \"address\": \"\"\n}'"
+          },
+          "response": []
+        },
+        {
+          "name": "conferir pedidos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "accept",
+                "value": "*/*"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders/unit/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "unit",
+                "1"
+              ]
+            },
+            "description": "Generated from cURL: curl -X 'POST' \\\n  'http://localhost:8001/api/v1/units' \\\n  -H 'accept: */*' \\\n  -H 'Authorization: Bearer {{json_web_token_0n90}}' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n  \"name\": \"\",\n  \"address\": \"\"\n}'"
+          },
+          "response": []
+        },
+        {
+          "name": "conferir pagamentos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "accept",
+                "value": "*/*"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/payments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "payments"
+              ]
+            },
+            "description": "Generated from cURL: curl -X 'POST' \\\n  'http://localhost:8001/api/v1/units' \\\n  -H 'accept: */*' \\\n  -H 'Authorization: Bearer {{json_web_token_0n90}}' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n  \"name\": \"\",\n  \"address\": \"\"\n}'"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "cenário de erro",
+      "item": [
+        {
+          "name": "fazer pedido com erro (produto insuficiente)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": 1,\n  \"unitId\": 1,\n  \"deliveryType\": \"COUNTER\",\n  \"orderChannel\": \"COUNTER\",\n  \"paymentType\": \"PIX\",\n  \"items\": [\n    {\n      \"productId\": 1,\n      \"quantity\": 7\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8001",
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "json_web_token_0n90",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_009n",
+      "secret": true
+    },
+    {
+      "key": "jwt_token",
+      "value": ""
+    }
+  ]
+}

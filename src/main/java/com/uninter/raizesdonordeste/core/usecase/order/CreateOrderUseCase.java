@@ -87,11 +87,11 @@ public class CreateOrderUseCase {
                     .orElseThrow(() -> new ResourceNotFoundException(
                         "Product not available in stock for this unit: " + product.getId()));
 
-                if (inventoryItem.getQuantity() < inventoryItem.getMinimumQuantity()) {
+                if (inventoryItem.getQuantity() < itemInput.quantity()) {
                     throw new DomainException(
                         "Insufficient stock for product '" + product.getName()
-                        + "'. Current: " + inventoryItem.getQuantity()
-                        + ", minimum required: " + inventoryItem.getMinimumQuantity());
+                        + "'. Available: " + inventoryItem.getQuantity()
+                        + ", requested: " + itemInput.quantity());
                 }
 
                 return new ResolvedItem(product, itemInput.quantity());
