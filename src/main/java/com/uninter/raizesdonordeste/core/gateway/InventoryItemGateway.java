@@ -17,4 +17,6 @@ public interface InventoryItemGateway {
 
     List<InventoryItemDomain> findByProductId(Long productId);
 
+    Optional<InventoryItemDomain> findByUnitIdAndProductId(Long unitId, Long productId);
+
 }

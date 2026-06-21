@@ -45,4 +45,9 @@ public class InventoryItemDatabaseGateway implements InventoryItemGateway {
         return repository.findByProductId(productId).stream().map(InventoryItemEntity::toDomain).toList();
     }
 
+    @Override
+    public Optional<InventoryItemDomain> findByUnitIdAndProductId(final Long unitId, final Long productId) {
+        return repository.findByUnitIdAndProductId(unitId, productId).map(InventoryItemEntity::toDomain);
+    }
+
 }

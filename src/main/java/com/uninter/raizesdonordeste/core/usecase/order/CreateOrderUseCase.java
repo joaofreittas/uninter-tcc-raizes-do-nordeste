@@ -6,8 +6,10 @@ import com.uninter.raizesdonordeste.core.domain.order.OrderCreatedEvent;
 import com.uninter.raizesdonordeste.core.domain.order.OrderDomain;
 import com.uninter.raizesdonordeste.core.domain.order.OrderItemDomain;
 import com.uninter.raizesdonordeste.core.domain.product.ProductDomain;
+import com.uninter.raizesdonordeste.core.exception.DomainException;
 import com.uninter.raizesdonordeste.core.exception.ResourceNotFoundException;
 import com.uninter.raizesdonordeste.core.gateway.CustomerGateway;
+import com.uninter.raizesdonordeste.core.gateway.InventoryItemGateway;
 import com.uninter.raizesdonordeste.core.gateway.OrderGateway;
 import com.uninter.raizesdonordeste.core.gateway.OrderItemGateway;
 import com.uninter.raizesdonordeste.core.gateway.ProductGateway;
@@ -28,6 +30,7 @@ public class CreateOrderUseCase {
     private final CustomerGateway customerGateway;
     private final UnitGateway unitGateway;
     private final ProductGateway productGateway;
+    private final InventoryItemGateway inventoryItemGateway;
     private final OrderGateway orderGateway;
     private final OrderItemGateway orderItemGateway;
     private final ApplicationEventPublisher eventPublisher;
@@ -40,7 +43,7 @@ public class CreateOrderUseCase {
         unitGateway.findById(input.unitId())
             .orElseThrow(() -> new ResourceNotFoundException("Unit not found: " + input.unitId()));
 
-        var resolvedItems = resolveItems(input.items());
+        var resolvedItems = resolveItems(input.items(), input.unitId());
 
         var totalAmount = resolvedItems.stream()
             .map(r -> r.product().getPrice().multiply(BigDecimal.valueOf(r.quantity())))
@@ -72,12 +75,25 @@ public class CreateOrderUseCase {
             .build();
     }
 
-    private List<ResolvedItem> resolveItems(final List<OrderItemInput> items) {
+    private List<ResolvedItem> resolveItems(final List<OrderItemInput> items, final Long unitId) {
         return items.stream()
             .map(itemInput -> {
                 var product = productGateway.findById(itemInput.productId())
                     .orElseThrow(() -> new ResourceNotFoundException(
                         "Product not found: " + itemInput.productId()));
+
+                var inventoryItem = inventoryItemGateway
+                    .findByUnitIdAndProductId(unitId, product.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                        "Product not available in stock for this unit: " + product.getId()));
+
+                if (inventoryItem.getQuantity() < inventoryItem.getMinimumQuantity()) {
+                    throw new DomainException(
+                        "Insufficient stock for product '" + product.getName()
+                        + "'. Current: " + inventoryItem.getQuantity()
+                        + ", minimum required: " + inventoryItem.getMinimumQuantity());
+                }
+
                 return new ResolvedItem(product, itemInput.quantity());
             })
             .toList();
