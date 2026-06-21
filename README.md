@@ -7,13 +7,12 @@ API REST para gerenciamento operacional da rede de lojas **"Raízes do Nordeste"
 ## Índice
 
 1. [Executar o Projeto](#1-executar-o-projeto)
-2. [Testes do Fluxo Principal - Realizar Pedido](#2-testes-do-fluxo-principal--realizar-pedido)
+2. [Testes do Fluxo Principal - Realizar Pedido](#2-testes-do-fluxo-principal---realizar-pedido-executar-via-postman)
 3. [Plano de Testes](#3-plano-de-testes)
    - [3.1 Pré-configuração](#31-pré-configuração-da-coleção-plano-de-testes)
    - [3.2 Variáveis da Coleção](#32-variáveis-da-coleção-plano-de-testes)
    - [3.3 Visão Geral dos Cenários](#33-visão-geral-dos-cenários)
-   - [3.4 Rastreio de Estoque](#34-rastreio-de-estoque-produto-1--coca-cola-ks)
-   - [3.5 Cenários de Teste](#35-cenários-de-teste)
+   - [3.4 Cenários de Teste](#34-cenários-de-teste)
 
 ---
 
@@ -453,39 +452,28 @@ Antes de executar qualquer caso de teste, execute os requests da pasta **`pré-c
 
 ### 3.3 Visão Geral dos Cenários
 
-| ID | Cenário | Tipo | Categoria |
-|----|---------|------|-----------|
-| T01 | Login com credenciais válidas | ✅ Positivo | Autenticação |
-| T02 | Acesso sem token → 401 | ❌ Negativo | Autenticação |
-| T03 | Acesso com perfil sem permissão → 403 | ❌ Negativo | Autorização |
-| T04a | Campo obrigatório ausente → 400 | ❌ Negativo | Validação |
-| T04b | Valor inválido (preço negativo) → 400 | ❌ Negativo | Validação |
-| T05 | Pagamento mock recusado - pedido criado (total = R$ 10,00) | ❌ Negativo | Pagamento |
-| T05a | Verificar status DECLINED do pagamento | ❌ Negativo | Pagamento |
-| T06 | Criar pedido com itens válidos → 201 | ✅ Positivo | Regra de Negócio |
-| T07 | Conferir estoque após pedido - baixa confirmada | ✅ Positivo | Regra de Negócio |
-| T08 | Pedido com produto inexistente → 404 | ❌ Negativo | Regra de Negócio |
-| T09 | Pagamento mock aprovado → status APPROVED (+ verificação cruzada T05) | ✅ Positivo | Pagamento |
-| T10 | Pedido com estoque insuficiente → 400 | ❌ Negativo | Regra de Negócio |
-| T11 | Consultar pedidos da unidade → 200 | ✅ Positivo | Regra de Negócio |
-| T12 | Auditoria - criação de pedido gera log → 200 | ✅ Positivo | Auditoria |
+| ID | Cenário | Endpoint | Pré-condição | Entrada | Esperado (status + pontos do response) | Evidência (nome na coleção) |
+|----|---------|----------|--------------|---------|----------------------------------------|-----------------------------|
+| T01 | Login com credenciais válidas | `POST /api/v1/auth/login` | Usuário `joao@teste.com` cadastrado com role `ADMIN` via coleção `realizar pedido`. | `{ "email": "joao@teste.com", "password": "12345678" }` | **200 OK** + campo `token` com JWT preenchido. | `autenticação e autorização / T01 - Login com credenciais válidas` |
+| T02 | Acesso sem token | `GET /api/v1/inventory-items` | — | — (header `Authorization` ausente) | **401 Unauthorized** + `{ "status": 401, "message": "Não autenticado" }` | `autenticação e autorização / T02 - Acesso sem token → 401` |
+| T03 | Acesso com perfil sem permissão | `POST /api/v1/units` | `jwt_token_user` preenchido pela pré-configuração (login com `joao@gmail.com`, role USER). | `{ "name": "Unidade Teste", "address": "Rua Exemplo, 100" }` + `Authorization: Bearer {{jwt_token_user}}` | **403 Forbidden** — endpoint requer role `ADMIN` ou `MANAGER`. | `autenticação e autorização / T03 - Acesso com perfil sem permissão → 403` |
+| T04a | Campo obrigatório ausente | `POST /api/v1/products` | `jwt_token` preenchido (ADMIN autenticado). | `{ "price": "4.99" }` (campo `name` deliberadamente omitido — viola `@NotBlank`) | **400 Bad Request** + mensagem de validação indicando que `name` é obrigatório. Nenhum produto criado. | `validação de dados / T04a - Campo obrigatório ausente → 400` |
+| T04b | Valor inválido — preço negativo | `POST /api/v1/products` | `jwt_token` preenchido (ADMIN autenticado). | `{ "name": "Produto Inválido", "price": "-5.00" }` (viola `@DecimalMin("0.01")`) | **400 Bad Request** + mensagem de validação indicando que o preço deve ser maior que zero. Nenhum produto criado. | `validação de dados / T04b - Valor inválido (preço negativo) → 400` |
+| T05 | Pagamento mock recusado — pedido criado | `POST /api/v1/orders` | Pré-configuração executada: produto mock (R$ 10,00) criado, em estoque (5 un.) e no cardápio da unidade 1. `product_id_declined` preenchido. | `{ "customerId": 1, "unitId": 1, "deliveryType": "COUNTER", "orderChannel": "COUNTER", "paymentType": "PIX", "items": [{ "productId": {{product_id_declined}}, "quantity": 1 }] }` (total = R$ 10,00) | **201 Created** + `totalAmount: 10.00`. Pedido criado com sucesso; pagamento processado assincronamente com status `DECLINED`. | `pagamento / T05 - Pagamento mock recusado (total = R$ 10,00)` |
+| T05a | Verificar status DECLINED do pagamento | `GET /api/v1/payments` | T05 executado. | — | **200 OK** + lista contendo registro com `amount: 10.00` e `status: DECLINED`. | `pagamento / T05a - Pagamento mock recusado → status DECLINED` |
+| T06 | Criar pedido com itens válidos | `POST /api/v1/orders` | Pré-configuração executada (Setup 3 repôs estoque produto 1 para 10 unidades). Produto 1 (*Coca Cola KS*, R$ 4,99) em estoque e no cardápio da unidade 1. Cliente 1 e unidade 1 existentes. | `{ "customerId": 1, "unitId": 1, "deliveryType": "COUNTER", "orderChannel": "COUNTER", "paymentType": "PIX", "items": [{ "productId": 1, "quantity": 5 }] }` (total = R$ 24,95) | **201 Created** + `status: "PENDING"` + `totalAmount: 24.95`. Estoque produto 1: 10 → 5 unidades. | `regras de negócio / T06 - Criar pedido com itens válidos → 201` |
+| T07 | Conferir estoque após pedido — baixa confirmada | `GET /api/v1/inventory-items` | T06 executado (5 unidades consumidas do estoque inicial de 10). | — | **200 OK** + produto 1 com `quantity: 5` (baixa automática confirmada). | `regras de negócio / T07 - Conferir estoque após pedido (baixa confirmada)` |
+| T08 | Pedido com produto inexistente | `POST /api/v1/orders` | `productId: 999` não existe no banco. | `{ "customerId": 1, "unitId": 1, "deliveryType": "COUNTER", "orderChannel": "COUNTER", "paymentType": "PIX", "items": [{ "productId": 999, "quantity": 1 }] }` | **404 Not Found** + `{ "status": 404, "message": "Product not found: 999" }`. Nenhum pedido criado; estoque inalterado. | `regras de negócio / T08 - Pedido com produto inexistente → 404` |
+| T09 | Pagamento mock aprovado | `GET /api/v1/payments` | T06 e T05 executados. | — | **200 OK** + (1) registro com `amount: 24.95` e `status: APPROVED` (confirma T06); (2) registro com `amount: 10.00` e `status: DECLINED` (confirma T05). | `pagamento / T09 - Pagamento mock aprovado → status APPROVED` |
+| T10 | Pedido com estoque insuficiente | `POST /api/v1/orders` | T06 executado. Estoque produto 1 = 5 unidades disponíveis. | `{ "customerId": 1, "unitId": 1, "deliveryType": "COUNTER", "orderChannel": "COUNTER", "paymentType": "PIX", "items": [{ "productId": 1, "quantity": 7 }] }` (solicitado: 7 > disponível: 5) | **400 Bad Request** + `{ "status": 400, "message": "Insufficient stock for product 'Coca Cola KS'. Available: 5, requested: 7" }`. Pedido não criado; estoque inalterado. | `regras de negócio / T10 - Pedido com estoque insuficiente → 400` |
+| T11 | Consultar pedidos da unidade | `GET /api/v1/orders/unit/1` | T06 executado. Unidade 1 possui ao menos um pedido registrado. | — | **200 OK** + lista não-vazia com todos os itens contendo `unitId: 1`. | `regras de negócio / T11 - Consultar pedidos da unidade → 200` |
+| T12 | Auditoria — criação de pedido gera log | `GET /api/v1/audit-logs` | T06 executado. `@Auditable(action = AuditAction.CREATE)` em `CreateOrderUseCase` dispara registro assíncrono via `AuditAspect`. | — | **200 OK** + lista com ao menos um registro contendo `action: "CREATE"` e campo `performedBy` preenchido com o e-mail do usuário executor. | `auditoria / T12 - Auditoria: criação de pedido gera log → 200` |
 
 **Total:** 14 cenários - 6 positivos · 8 negativos
 
 ---
 
-### 3.4 Rastreio de Estoque (Produto 1 - Coca Cola KS)
-
-```
-Após fluxo principal (realizar pedido):  quantity = 5
-Após pré-configuração Setup 3 (+5):      quantity = 10
-Após T06 (−5):                           quantity = 5  ← T07 verifica este valor
-T10 solicita 7 → falha (7 > 5)          ← estoque insuficiente confirmado
-```
-
----
-
-### 3.5 Cenários de Teste
+### 3.4 Cenários de Teste
 
 ---
 
