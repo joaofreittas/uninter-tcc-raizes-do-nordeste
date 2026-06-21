@@ -13,10 +13,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,6 +44,16 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderResponse> create(@Valid @RequestBody CreateOrderRequest request) {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(orderFacade.create(request));
+    }
+
+    @Operation(summary = "Listar pedidos por unidade")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lista de pedidos da unidade"),
+        @ApiResponse(responseCode = "404", description = "Unidade não encontrada", content = @Content)
+    })
+    @GetMapping("/unit/{unitId}")
+    public ResponseEntity<List<OrderResponse>> findByUnit(@PathVariable final Long unitId) {
+        return ResponseEntity.ok(orderFacade.findByUnitId(unitId));
     }
 
 }
