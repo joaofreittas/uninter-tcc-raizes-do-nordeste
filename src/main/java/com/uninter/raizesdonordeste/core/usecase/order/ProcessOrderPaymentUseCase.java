@@ -1,5 +1,6 @@
 package com.uninter.raizesdonordeste.core.usecase.order;
 
+import com.uninter.raizesdonordeste.core.domain.order.OrderPaymentApprovedEvent;
 import com.uninter.raizesdonordeste.core.domain.payment.PaymentDomain;
 import com.uninter.raizesdonordeste.core.domain.payment.PaymentType;
 import com.uninter.raizesdonordeste.core.exception.ResourceNotFoundException;
@@ -8,6 +9,7 @@ import com.uninter.raizesdonordeste.core.gateway.PaymentGateway;
 import com.uninter.raizesdonordeste.core.gateway.PaymentProviderGateway;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -18,6 +20,7 @@ public class ProcessOrderPaymentUseCase {
     private final OrderGateway orderGateway;
     private final PaymentGateway paymentGateway;
     private final PaymentProviderGateway paymentProviderGateway;
+    private final ApplicationEventPublisher eventPublisher;
 
     public void execute(final Long orderId, final PaymentType paymentType) {
         var order = orderGateway.findById(orderId)
@@ -30,9 +33,10 @@ public class ProcessOrderPaymentUseCase {
             var result = paymentProviderGateway.processPayment(order.getTotalAmount());
             pendingPayment.approve(result.gatewayTransactionId());
             paymentGateway.save(pendingPayment);
-            order.confirm();
-
+            order.confirmPayment();
             orderGateway.save(order);
+
+            eventPublisher.publishEvent(new OrderPaymentApprovedEvent(orderId));
         } catch (Exception ex) {
             log.error("Payment processing failed for order {}: {}", orderId, ex.getMessage());
             pendingPayment.decline();

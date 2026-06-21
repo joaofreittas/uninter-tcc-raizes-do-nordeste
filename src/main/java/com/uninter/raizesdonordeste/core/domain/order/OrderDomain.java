@@ -42,6 +42,11 @@ public class OrderDomain {
             .build();
     }
 
+    public void confirmPayment() {
+        this.status = OrderStatus.PAYMENT_CONFIRMED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public void confirm() {
         this.status = OrderStatus.CONFIRMED;
         this.updatedAt = LocalDateTime.now();

@@ -6,12 +6,14 @@ import com.uninter.raizesdonordeste.dataprovider.database.customer.CustomerRepos
 import com.uninter.raizesdonordeste.dataprovider.database.unit.UnitRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class OrderDatabaseGateway implements OrderGateway {
 
     private final OrderRepository repository;
@@ -19,6 +21,7 @@ public class OrderDatabaseGateway implements OrderGateway {
     private final UnitRepository unitRepository;
 
     @Override
+    @Transactional
     public OrderDomain save(final OrderDomain order) {
         var customerEntity = customerRepository.findById(order.getCustomerId()).orElse(null);
         var unitEntity = unitRepository.findById(order.getUnitId()).orElse(null);
@@ -46,6 +49,7 @@ public class OrderDatabaseGateway implements OrderGateway {
     }
 
     @Override
+    @Transactional
     public void delete(final OrderDomain order) {
         repository.deleteById(order.getId());
     }

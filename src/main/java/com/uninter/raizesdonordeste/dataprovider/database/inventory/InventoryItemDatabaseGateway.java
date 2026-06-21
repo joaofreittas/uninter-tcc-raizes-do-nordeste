@@ -6,12 +6,14 @@ import com.uninter.raizesdonordeste.dataprovider.database.product.ProductReposit
 import com.uninter.raizesdonordeste.dataprovider.database.unit.UnitRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class InventoryItemDatabaseGateway implements InventoryItemGateway {
 
     private final InventoryItemRepository repository;
@@ -19,6 +21,7 @@ public class InventoryItemDatabaseGateway implements InventoryItemGateway {
     private final ProductRepository productRepository;
 
     @Override
+    @Transactional
     public InventoryItemDomain save(final InventoryItemDomain item) {
         var unitEntity = unitRepository.findById(item.getUnitId()).orElse(null);
         var productEntity = productRepository.findById(item.getProductId()).orElse(null);
